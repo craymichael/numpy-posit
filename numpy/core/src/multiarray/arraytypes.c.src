@@ -4206,22 +4206,28 @@ HALF_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
 
 static void
 POSIT8_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
-         npy_intp n, void *NPY_UNUSED(ignore))
+           npy_intp n, void *NPY_UNUSED(ignore))
 {
-    /* FIXME(xman): use quire to accumulate. */
-    posit8_t acc = { .v=NPY_POSIT8_ZERO };
+    /* FIXME(xman): use quire to accumulate - @craymichael is working on this... */
+    //posit8_t acc = { .v=NPY_POSIT8_ZERO }; // ORIGINAL
+    quire8_t quire; // NEW(quire)
+    quire = q8_clr(quire);
+
     npy_intp i;
 
     for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
         posit8_t in1 = { .v=*((npy_posit8 *)ip1) };
         posit8_t in2 = { .v=*((npy_posit8 *)ip2) };
-        acc = p8_mulAdd(in1, in2, acc);
+        //acc = p8_mulAdd(in1, in2, acc); // ORIGINAL
+        quire = q8_fdp_add(quire, in1, in2); // NEW(quire)
     }
-    *((npy_posit8 *)op) = acc.v;
+    //*((npy_posit8 *)op) = acc.v; // ORIGINAL
+    posit8_t out = q8_to_p8(quire); // NEW(quire)
+    *((npy_posit8 *)op) = out.v;
 }
 static void
 POSIT16_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
-         npy_intp n, void *NPY_UNUSED(ignore))
+            npy_intp n, void *NPY_UNUSED(ignore))
 {
     /* FIXME(xman): use quire to accumulate. */
     posit16_t acc = { .v=NPY_POSIT16_ZERO };
@@ -4237,7 +4243,7 @@ POSIT16_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
 
 static void
 POSIT32_dot(char *ip1, npy_intp is1, char *ip2, npy_intp is2, char *op,
-         npy_intp n, void *NPY_UNUSED(ignore))
+            npy_intp n, void *NPY_UNUSED(ignore))
 {
     /* FIXME(xman): use quire to accumulate. */
     posit32_t acc = { .v=NPY_POSIT32_ZERO };
